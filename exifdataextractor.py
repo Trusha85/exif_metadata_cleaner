@@ -7,8 +7,6 @@ import os
 
 SUPPORTED_FORMATS = (".jpg", ".jpeg", ".png", ".tiff", ".tif")
 
-
-# ---------------- EXIF EXTRACTION ----------------
 def extract_exif(path):
     try:
         image = Image.open(path)
@@ -23,13 +21,10 @@ def extract_exif(path):
     except Exception:
         return {}
 
-
-# ---------------- CLEAN IMAGE ----------------
 def clean_image(src: Path):
     try:
-        # 🚫 Prevent re-cleaning
         if src.stem.endswith("_cleaned"):
-            log_message("⚠ Image already appears to be cleaned. Skipping...")
+            log_message("Image already appears to be cleaned. Skipping...")
             messagebox.showwarning(
                 "Already Cleaned",
                 "This image already appears to be cleaned."
@@ -37,22 +32,15 @@ def clean_image(src: Path):
             return None
 
         image = Image.open(src)
-
-        # Create output path
         cleaned_path = src.with_name(src.stem + "_cleaned" + src.suffix)
 
-        # ✅ Handle JPEG/TIFF (have EXIF)
         if src.suffix.lower() in (".jpg", ".jpeg", ".tiff", ".tif"):
             try:
                 piexif.remove(str(src))
             except Exception:
                 pass
-
-        # ✅ Handle PNG or images without EXIF
         if image.mode in ("RGBA", "P"):
             image = image.convert("RGB")
-
-        # IMPORTANT: save fresh image without metadata
         image.save(cleaned_path)
 
         return cleaned_path
@@ -60,14 +48,10 @@ def clean_image(src: Path):
     except Exception as e:
         messagebox.showerror("Error", f"Cleaning failed:\n{e}")
         return None
-
-# ---------------- LOGGING ----------------
 def log_message(text):
     log_box.insert(tk.END, text + "\n")
     log_box.see(tk.END)
 
-
-# ---------------- BROWSE FILE ----------------
 def browse_file():
     file_path = filedialog.askopenfilename(
         filetypes=[("Image files", "*.jpg *.jpeg *.png *.tiff *.tif")]
@@ -75,15 +59,11 @@ def browse_file():
     if file_path:
         path_entry.delete(0, tk.END)
         path_entry.insert(0, file_path)
-
-        # ✅ Re-enable button for new file
         process_btn.config(state=tk.NORMAL)
 
         log_box.delete(1.0, tk.END)
-        log_message("📂 New image selected. Ready to process.")
+        log_message("New image selected.Ready to process.")
 
-
-# ---------------- PROCESS IMAGE ----------------
 def process_image():
     filepath = path_entry.get().strip().strip('"').strip("'")
 
@@ -115,9 +95,8 @@ def process_image():
     )
     log_message(f"Total EXIF tags: {len(exif)}")
 
-    # ✅ If no metadata exists
     if len(exif) == 0:
-        log_message("\n⚠ No EXIF metadata found in this image.")
+        log_message("\n No EXIF metadata found in this image.")
         log_message("Skipping cleaning process.")
 
         messagebox.showinfo(
@@ -126,11 +105,10 @@ def process_image():
         )
         return
 
-    # ✅ Clean image only when metadata exists
     cleaned_path = clean_image(path)
 
     if cleaned_path:
-        log_message("\n✔ CLEANED IMAGE SAVED TO:")
+        log_message("\n CLEANED IMAGE SAVED TO:")
         log_message(str(cleaned_path))
 
         log_message("\n===== EXIF DATA AFTER CLEANING =====")
@@ -140,7 +118,7 @@ def process_image():
         process_btn.config(state=tk.DISABLED)
 
         messagebox.showinfo("Success", "Metadata removed successfully!")
-# ---------------- GUI ----------------
+        
 root = tk.Tk()
 root.title("EXIF Metadata Cleaner Tool")
 root.geometry("650x500")
