@@ -24,7 +24,7 @@ def extract_exif(path):
 def clean_image(src: Path):
     try:
         if src.stem.endswith("_cleaned"):
-            log_message("Image already appears to be cleaned. Skipping...")
+            log_message("Image already appears to be cleaned.")
             messagebox.showwarning(
                 "Already Cleaned",
                 "This image already appears to be cleaned."
